@@ -1,16 +1,27 @@
 package edu.cnm.deepdive.atthemovies.model.entity;
 
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import org.hibernate.annotations.CreationTimestamp;
 import org.hibernate.annotations.GenericGenerator;
 import org.hibernate.annotations.UpdateTimestamp;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.hateoas.EntityLinks;
 import org.springframework.lang.NonNull;
+import org.springframework.stereotype.Component;
 
+import javax.annotation.PostConstruct;
 import javax.persistence.*;
+import java.net.URI;
 import java.util.Date;
 import java.util.UUID;
 
 @Entity()
+@Component
+@JsonIgnoreProperties(value = {"id", "created", "updated", "href"}, allowGetters = true,
+        ignoreUnknown = true)
 public class Movie {
+
+    private static EntityLinks entityLinks;
 
     @Id
     @GeneratedValue(generator = "uuid2")
@@ -74,6 +85,20 @@ public class Movie {
 
     @Enumerated(EnumType.STRING)
     private Genre genre;
+
+    public URI getHref() {
+        return entityLinks.linkForSingleResource(Movie.class, id).toUri();
+    }
+
+    @PostConstruct
+    private void init() {
+        String ignore = entityLinks.toString();
+    }
+
+    @Autowired
+    private void setEntityLinks(EntityLinks entityLinks) {
+        Movie.entityLinks = entityLinks;
+    }
 
     public enum Genre {
         ACTION, ROM_COM, HORROR, DOCUMENTARY, ANIME, SCI_FI, FANTASY
