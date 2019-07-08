@@ -1,6 +1,8 @@
 package edu.cnm.deepdive.atthemovies.controller;
 
+import edu.cnm.deepdive.atthemovies.model.dao.ActorRepository;
 import edu.cnm.deepdive.atthemovies.model.dao.MovieRepository;
+import edu.cnm.deepdive.atthemovies.model.entity.Actor;
 import edu.cnm.deepdive.atthemovies.model.entity.Movie;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.hateoas.ExposesResourceFor;
@@ -8,6 +10,8 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+
+import javax.transaction.Transactional;
 import java.util.List;
 import java.util.NoSuchElementException;
 import java.util.UUID;
@@ -17,11 +21,13 @@ import java.util.UUID;
 @ExposesResourceFor(Movie.class)
 public class MovieController {
 
-    private MovieRepository repository;
+    private final MovieRepository repository;
+    private final ActorRepository actorRepository;
 
     @Autowired
-    public MovieController(MovieRepository repository) {
+    public MovieController(MovieRepository repository, ActorRepository actorRepository) {
         this.repository = repository;
+        this.actorRepository = actorRepository;
     }
 
     @GetMapping(produces = MediaType.APPLICATION_JSON_VALUE)
@@ -50,7 +56,29 @@ public class MovieController {
         return repository.findById(id).get();
     }
 
+    @Transactional
+    @DeleteMapping(value = "{id}")
+    public void delete(@PathVariable("id") UUID id) {
+       Movie movie = get(id);
+       List<Actor> actors = movie.getActors();
+       actors.forEach((actor) -> actor.getMovies().remove(movie));
+       actorRepository.saveAll(actors);
+       repository.delete(movie);
+    }
+
+    @PutMapping(value = "{movieId}/actors/{actorId}", produces = MediaType.APPLICATION_JSON_VALUE)
+    public Movie attach(@PathVariable("movieId") UUID movieId, @PathVariable("actorId") UUID actorId) {
+        Movie movie = get(movieId);
+        Actor actor = actorRepository.findById(actorId).get();
+        if (!actor.getMovies().contains(movie)){
+            actor.getMovies().add(movie);
+        }
+        actorRepository.save(actor);
+        return movie;
+    }
+
     @ResponseStatus(value = HttpStatus.NOT_FOUND)
     @ExceptionHandler(NoSuchElementException.class)
     public void notFound() {}
+
 }
