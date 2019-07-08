@@ -15,9 +15,9 @@ import java.net.URI;
 import java.util.Date;
 import java.util.UUID;
 
-@Entity()
+@Entity
 @Component
-@JsonIgnoreProperties(value = {"id", "created", "updated", "href"}, allowGetters = true,
+@JsonIgnoreProperties(value = {"created", "updated", "href"}, allowGetters = true,
         ignoreUnknown = true)
 public class Movie {
 

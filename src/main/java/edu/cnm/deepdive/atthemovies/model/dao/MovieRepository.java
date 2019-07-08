@@ -12,4 +12,8 @@ public interface MovieRepository extends CrudRepository<Movie, UUID> {
 
     List<Movie> getAllByGenreOrderByTitleAsc(Movie.Genre genre);
 
+    List<Movie> getAllByTitleContainsOrderByTitleAsc(String titleFragment);
+
+
+
 }

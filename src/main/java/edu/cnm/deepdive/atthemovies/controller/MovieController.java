@@ -6,9 +6,8 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.hateoas.ExposesResourceFor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
-
-import java.lang.management.MonitorInfo;
 import java.util.List;
 import java.util.NoSuchElementException;
 import java.util.UUID;
@@ -34,11 +33,16 @@ public class MovieController {
         }
     }
 
+    @GetMapping(value = "search", produces = MediaType.APPLICATION_JSON_VALUE)
+    public List<Movie> search(@RequestParam(value = "q", required = true) String titleFragment) {
+        return repository.getAllByTitleContainsOrderByTitleAsc(titleFragment);
+    }
+
     @PostMapping(consumes = MediaType.APPLICATION_JSON_VALUE,
         produces = MediaType.APPLICATION_JSON_VALUE)
-    public Movie post(@RequestBody Movie movie) {
-        return repository.save(movie);// TODO Build a ResponseEntity.
-
+    public ResponseEntity<Movie> post(@RequestBody Movie movie) {
+        repository.save(movie);
+        return ResponseEntity.created(movie.getHref()).body(movie);
     }
 
     @GetMapping(value = "{id}", produces = MediaType.APPLICATION_JSON_VALUE)
