@@ -75,6 +75,10 @@ public class Genre {
         this.name = name;
     }
 
+    public List<Movie> getMovies() {
+        return movies;
+    }
+
     public URI getHref() {
         return entityLinks.linkForSingleResource(Genre.class, id).toUri();
     }
