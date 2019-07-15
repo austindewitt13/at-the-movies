@@ -1,9 +1,7 @@
 package edu.cnm.deepdive.atthemovies.model.entity;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
-import com.fasterxml.jackson.databind.annotation.JsonSerialize;
-import edu.cnm.deepdive.atthemovies.view.FlatActor;
-import edu.cnm.deepdive.atthemovies.view.FlatMovie;
 import org.hibernate.annotations.CreationTimestamp;
 import org.hibernate.annotations.GenericGenerator;
 import org.hibernate.annotations.UpdateTimestamp;
@@ -11,6 +9,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.hateoas.EntityLinks;
 import org.springframework.lang.NonNull;
 import org.springframework.stereotype.Component;
+
 import javax.annotation.PostConstruct;
 import javax.persistence.*;
 import java.net.URI;
@@ -19,18 +18,19 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.UUID;
 
+
 @Entity
 @Component
-@JsonIgnoreProperties(value = {"id","created", "updated", "href","actors"}, allowGetters = true,
+@JsonIgnoreProperties(value = {"created", "updated", "href"}, allowGetters = true,
         ignoreUnknown = true)
-public class Movie implements FlatMovie {
+public class Genre {
 
     private static EntityLinks entityLinks;
 
     @Id
     @GeneratedValue(generator = "uuid2")
     @GenericGenerator(name = "uuid2", strategy = "uuid2")
-    @Column(name = "movie_id", columnDefinition = "CHAR(16) FOR BIT DATA",
+    @Column(name = "genre_id", columnDefinition = "CHAR(16) FOR BIT DATA",
             nullable = false, updatable = false)
     private UUID id;
 
@@ -46,71 +46,38 @@ public class Movie implements FlatMovie {
     @Column(nullable = false)
     private Date updated;
 
-    @Column(nullable = false)
-    private String title;
+    @NonNull
+    @Column(nullable = false, unique = true)
+    private String name;
 
-    private String screenwriter;
+    @JsonIgnore
+    @OneToMany(fetch = FetchType.LAZY, mappedBy = "genre",
+            cascade = {CascadeType.DETACH, CascadeType.MERGE, CascadeType.PERSIST, CascadeType.REFRESH})
+    private List<Movie> movies = new LinkedList<>();
 
-    @ManyToOne(fetch = FetchType.EAGER)
-    @JoinColumn(name = "genre_id")
-    private Genre genre;
-
-    @ManyToMany(fetch = FetchType.LAZY, mappedBy = "movies",
-            cascade = {CascadeType.DETACH,CascadeType.MERGE, CascadeType.PERSIST,CascadeType.REFRESH})
-    @OrderBy("name ASC")
-    @JsonSerialize(contentAs = FlatActor.class)
-    private List<Actor> actors = new LinkedList<>();
-
-    @Override
     public UUID getId() {
         return id;
     }
 
-    @Override
     public Date getCreated() {
         return created;
     }
 
-    @Override
     public Date getUpdated() {
         return updated;
     }
 
-    @Override
-    public String getTitle() {
-        return title;
+    public String getName() {
+        return name;
     }
 
-    public void setTitle(String title) {
-        this.title = title;
+    public void setName(String name) {
+        this.name = name;
     }
 
-    @Override
-    public String getScreenwriter() {
-        return screenwriter;
-    }
-
-    public void setScreenwriter(String screenwriter) {
-        this.screenwriter = screenwriter;
-    }
-
-    @Override
-    public Genre getGenre() {
-        return genre;
-    }
-
-    public void setGenre(Genre genre) {
-        this.genre = genre;
-    }
-
-    @Override
     public URI getHref() {
-        return entityLinks.linkForSingleResource(Movie.class, id).toUri();
+        return entityLinks.linkForSingleResource(Genre.class, id).toUri();
     }
-    public List<Actor> getActors() {
-        return actors;
-    }
-
 
     @PostConstruct
     private void init() {
@@ -119,7 +86,7 @@ public class Movie implements FlatMovie {
 
     @Autowired
     private void setEntityLinks(EntityLinks entityLinks) {
-        Movie.entityLinks = entityLinks;
+        Genre.entityLinks = entityLinks;
     }
 
 }

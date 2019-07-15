@@ -1,7 +1,7 @@
 package edu.cnm.deepdive.atthemovies.view;
 
 import edu.cnm.deepdive.atthemovies.model.entity.Movie;
-
+import edu.cnm.deepdive.atthemovies.model.entity.Genre;
 import java.net.URI;
 import java.util.Date;
 import java.util.UUID;
@@ -18,7 +18,7 @@ public interface FlatMovie {
 
     String getScreenwriter();
 
-    Movie.Genre getGenre();
+    Genre getGenre();
 
     URI getHref();
 
